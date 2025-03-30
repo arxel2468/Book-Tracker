@@ -23,9 +23,22 @@ class BookController extends Controller
         return view('books.index', compact('books'));
     }
     
-    public function create()
+    public function create(Request $request)
     {
-        return view('books.create');
+        // Check if this is a search request
+        $results = null;
+        $query = $request->input('query');
+        $type = $request->input('type');
+        
+        if ($query) {
+            if ($type === 'isbn') {
+                $results = $this->googleBooksService->searchByIsbn($query);
+            } else {
+                $results = $this->googleBooksService->searchByTitle($query);
+            }
+        }
+        
+        return view('books.create', compact('results', 'query', 'type'));
     }
     
     public function store(Request $request)
@@ -120,23 +133,27 @@ class BookController extends Controller
     }
 
     public function search(Request $request)
-    {
-        $query = $request->input('query');
-        $type = $request->input('type', 'title');
-        
-        if (empty($query)) {
-            return redirect()->route('books.create')
-                ->with('error', 'Please enter a search term');
-        }
-        
-        if ($type === 'isbn') {
-            $results = $this->googleBooksService->searchByIsbn($query);
-        } else {
-            $results = $this->googleBooksService->searchByTitle($query);
-        }
-        
-        return view('books.search-results', compact('results'));
+{
+    $query = $request->input('query');
+    $type = $request->input('type', 'title');
+    
+    if (empty($query)) {
+        return redirect()->route('books.create')
+            ->with('error', 'Please enter a search term');
     }
+    
+    if ($type === 'isbn') {
+        $results = $this->googleBooksService->searchByIsbn($query);
+    } else {
+        $results = $this->googleBooksService->searchByTitle($query);
+    }
+    
+    return view('books.search-results', compact('results'));
+}
+public function testSearch()
+{
+    return "Search route is working!";
+}
 
     public function importFromGoogle(Request $request)
     {

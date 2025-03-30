@@ -5,7 +5,7 @@
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Search Results</h1>
+        <h1>Search Results for "{{ $query ?? '' }}"</h1>
         <div>
             <a href="{{ route('books.create') }}" class="btn btn-outline-secondary me-2">
                 <i class="bi bi-arrow-left"></i> Back to Add Book

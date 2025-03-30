@@ -16,14 +16,14 @@
             <h5>Search for a Book</h5>
         </div>
         <div class="card-body">
-            <form action="{{ route('books.search') }}" method="GET" class="row g-3">
+            <form action="{{ route('books.create') }}" method="GET" class="row g-3">
                 <div class="col-md-6">
-                    <input type="text" name="query" class="form-control" placeholder="Enter ISBN or title">
+                    <input type="text" name="query" class="form-control" placeholder="Enter ISBN or title" value="{{ $query ?? '' }}">
                 </div>
                 <div class="col-md-3">
                     <select name="type" class="form-select">
-                        <option value="isbn">Search by ISBN</option>
-                        <option value="title">Search by Title</option>
+                        <option value="isbn" {{ ($type ?? '') == 'isbn' ? 'selected' : '' }}>Search by ISBN</option>
+                        <option value="title" {{ ($type ?? '') == 'title' ? 'selected' : '' }}>Search by Title</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -34,6 +34,62 @@
             </form>
         </div>
     </div>
+    
+    <!-- Search Results Section -->
+    @if(isset($results) && $query)
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Search Results for "{{ $query }}"</h5>
+            </div>
+            <div class="card-body">
+                @if(isset($results['items']) && count($results['items']) > 0)
+                    <div class="row g-4">
+                        @foreach($results['items'] as $item)
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <div class="row g-0">
+                                        <div class="col-md-4">
+                                            <img src="{{ $item['volumeInfo']['imageLinks']['thumbnail'] ?? 'https://via.placeholder.com/150x200?text=No+Cover' }}" 
+                                                class="img-fluid rounded-start" alt="{{ $item['volumeInfo']['title'] ?? 'Book cover' }}">
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ $item['volumeInfo']['title'] ?? 'Unknown Title' }}</h5>
+                                                <p class="card-text">
+                                                    <small class="text-muted">
+                                                        {{ isset($item['volumeInfo']['authors']) ? implode(', ', $item['volumeInfo']['authors']) : 'Unknown Author' }}
+                                                    </small>
+                                                </p>
+                                                <p class="card-text">
+                                                    <small class="text-muted">
+                                                        {{ $item['volumeInfo']['publishedDate'] ?? 'Unknown Date' }} • 
+                                                        {{ $item['volumeInfo']['pageCount'] ?? '?' }} pages
+                                                    </small>
+                                                </p>
+                                                <form action="{{ route('books.import') }}" method="POST">
+                                                    @csrf
+                                                    <input type="hidden" name="book_data" value="{{ json_encode($item) }}">
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="bi bi-plus-circle"></i> Add to Library
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="alert alert-info">
+                        <p>No books found matching your search criteria.</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
+    
+
     
     <div class="card">
         <div class="card-header">

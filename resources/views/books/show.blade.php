@@ -123,6 +123,7 @@
                                     @for($i = 1; $i <= 5; $i++)
                                         <i class="bi {{ $i <= $book->readingStatus->rating ? 'bi-star-fill' : 'bi-star' }} rating"></i>
                                     @endfor
+                                    <span class="ms-2 text-muted">{{ $book->readingStatus->rating }}/5</span>
                                 </div>
                             </div>
                         @endif
@@ -185,13 +186,20 @@
                         <div class="mb-3 finished-field">
                             <label for="rating" class="form-label">Rating</label>
                             <div class="rating-input">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <input type="radio" id="star{{ $i }}" name="rating" value="{{ $i }}" 
-                                        {{ ($book->readingStatus->rating ?? 0) == $i ? 'checked' : '' }}>
-                                    <label for="star{{ $i }}">
-                                        <i class="bi bi-star-fill"></i>
-                                    </label>
-                                @endfor
+                                <div class="d-flex align-items-center">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input visually-hidden" type="radio" id="star{{ $i }}" name="rating" value="{{ $i }}" 
+                                                {{ ($book->readingStatus->rating ?? 0) == $i ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="star{{ $i }}">
+                                                <i class="bi bi-star-fill {{ ($book->readingStatus->rating ?? 0) >= $i ? 'text-warning' : 'text-secondary' }}"></i>
+                                            </label>
+                                        </div>
+                                    @endfor
+                                    <span class="ms-2 rating-text">
+                                        {{ ($book->readingStatus->rating ?? 0) > 0 ? ($book->readingStatus->rating . '/5') : 'No rating' }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                         
@@ -213,24 +221,110 @@
 @section('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded successfully');
+        
+        // Get elements
         const statusSelect = document.getElementById('status');
         const readingFields = document.querySelectorAll('.reading-field');
         const finishedFields = document.querySelectorAll('.finished-field');
         
-        function updateFieldsVisibility() {
-            const status = statusSelect.value;
+        console.log('Status select:', statusSelect);
+        console.log('Reading fields:', readingFields.length);
+        console.log('Finished fields:', finishedFields.length);
+        
+        // Initially set display property directly with !important to override any CSS
+        readingFields.forEach(field => {
+            if (statusSelect.value === 'not_started') {
+                field.setAttribute('style', 'display: none !important');
+            } else {
+                field.setAttribute('style', 'display: block !important');
+            }
+        });
+        
+        finishedFields.forEach(field => {
+            if (statusSelect.value === 'finished') {
+                field.setAttribute('style', 'display: block !important');
+            } else {
+                field.setAttribute('style', 'display: none !important');
+            }
+        });
+        
+        // Add event listener to status select
+        statusSelect.addEventListener('change', function() {
+            console.log('Status changed to:', this.value);
             
             readingFields.forEach(field => {
-                field.style.display = (status === 'not_started') ? 'none' : 'block';
+                if (this.value === 'not_started') {
+                    field.setAttribute('style', 'display: none !important');
+                } else {
+                    field.setAttribute('style', 'display: block !important');
+                }
             });
             
             finishedFields.forEach(field => {
-                field.style.display = (status === 'finished') ? 'block' : 'none';
+                if (this.value === 'finished') {
+                    field.setAttribute('style', 'display: block !important');
+                } else {
+                    field.setAttribute('style', 'display: none !important');
+                }
+            });
+        });
+        
+        // Star rating functionality
+        const ratingInputs = document.querySelectorAll('.rating-input input[type="radio"]');
+        const ratingLabels = document.querySelectorAll('.rating-input label');
+        const ratingStars = document.querySelectorAll('.rating-input label i');
+        const ratingText = document.querySelector('.rating-text');
+        
+        ratingLabels.forEach((label, index) => {
+            // When hovering over a star
+            label.addEventListener('mouseenter', function() {
+                // Highlight this star and all previous stars
+                for (let i = 0; i <= index; i++) {
+                    ratingStars[i].classList.add('text-warning');
+                    ratingStars[i].classList.remove('text-secondary');
+                }
+                // Un-highlight all following stars
+                for (let i = index + 1; i < ratingStars.length; i++) {
+                    ratingStars[i].classList.remove('text-warning');
+                    ratingStars[i].classList.add('text-secondary');
+                }
+            });
+            
+            // When clicking a star
+            label.addEventListener('click', function() {
+                const starValue = index + 1;
+                ratingInputs[index].checked = true;
+                if (ratingText) {
+                    ratingText.textContent = starValue + '/5';
+                }
+            });
+        });
+        
+        // When mouse leaves the rating container
+        const ratingContainer = document.querySelector('.rating-input');
+        if (ratingContainer) {
+            ratingContainer.addEventListener('mouseleave', function() {
+                // Find which star is selected
+                let selectedIndex = -1;
+                ratingInputs.forEach((input, i) => {
+                    if (input.checked) {
+                        selectedIndex = i;
+                    }
+                });
+                
+                // Reset stars based on selection
+                ratingStars.forEach((star, i) => {
+                    if (i <= selectedIndex) {
+                        star.classList.add('text-warning');
+                        star.classList.remove('text-secondary');
+                    } else {
+                        star.classList.remove('text-warning');
+                        star.classList.add('text-secondary');
+                    }
+                });
             });
         }
-        
-        statusSelect.addEventListener('change', updateFieldsVisibility);
-        updateFieldsVisibility();
     });
 </script>
 @endsection

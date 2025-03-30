@@ -10,7 +10,6 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Book routes
 Route::resource('books', BookController::class);
-Route::get('/books/search', [BookController::class, 'search'])->name('books.search');
 Route::post('/books/import', [BookController::class, 'importFromGoogle'])->name('books.import');
 
 // Author routes

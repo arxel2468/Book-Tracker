@@ -22,6 +22,43 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
+        /* Ensure reading and finished fields are visible when needed */
+    .reading-field, .finished-field {
+        display: none; /* Default state */
+    }
+    
+    /* Star rating styles */
+    .rating-input .form-check-label {
+        cursor: pointer;
+        margin-right: 5px;
+    }
+    
+    .rating-input .form-check-input.visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+    
+    .rating-input i.bi {
+        font-size: 1.5rem;
+    }
+    
+    .rating {
+        color: gold;
+    }
+    
+    /* Modal styles to ensure visibility */
+    .modal-body .form-control, 
+    .modal-body .form-select,
+    .modal-body .form-label {
+        display: block !important;
+    }
     </style>
 </head>
 <body>
